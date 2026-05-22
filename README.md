@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Hotel Management System
 
 A full-stack hotel management application with guest booking, room management, payments, and employee administration. Built with FastAPI (backend) and vanilla JavaScript (frontend).

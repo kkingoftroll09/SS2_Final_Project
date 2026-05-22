@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from routers import (
     room_types,
@@ -20,9 +21,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
+allowed_origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://ss2-final-project-frontend-zfrp.onrender.com",
+]
+
+extra_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")
+if extra_origins:
+    allowed_origins.extend(
+        origin.strip() for origin in extra_origins.split(",") if origin.strip()
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -5,28 +5,108 @@ on:
     branches: [ main ]
 
 jobs:
-  trigger-deploys:
-    name: Trigger Render deploys
+  trigger-and-wait:
+    name: Trigger Render deploys and wait
     runs-on: ubuntu-latest
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
     steps:
       - name: Trigger backend deploy
+        id: trigger-backend
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID_BACKEND }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
+          set -euo pipefail
           echo "Triggering backend deploy for service $SERVICE_ID"
-          curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+          resp=$(curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{}' | jq || true
+            -d '{}')
+          echo "$resp" | jq .
+          deploy_id=$(echo "$resp" | jq -r .id)
+          if [ -z "$deploy_id" ] || [ "$deploy_id" = "null" ]; then
+            echo "::error::Failed to create backend deploy: $resp"
+            exit 1
+          fi
+          echo "deploy_id=$deploy_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for backend deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          deploy_id="${{ steps.trigger-backend.outputs.deploy_id }}"
+          echo "Waiting for backend deploy $deploy_id"
+          timeout=900
+          interval=10
+          elapsed=0
+          while true; do
+            resp=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/deploys/$deploy_id")
+            status=$(echo "$resp" | jq -r .status)
+            echo "Backend deploy status: $status"
+            if [ "$status" = "active" ]; then
+              echo "Backend deploy succeeded"
+              break
+            fi
+            if [ "$status" = "failed" ] || [ "$status" = "error" ]; then
+              echo "::error::Backend deploy failed: $resp"
+              exit 1
+            fi
+            sleep $interval
+            elapsed=$((elapsed + interval))
+            if [ $elapsed -ge $timeout ]; then
+              echo "::error::Timed out waiting for backend deploy (waited ${timeout}s)"
+              exit 1
+            fi
+          done
 
       - name: Trigger frontend deploy
+        id: trigger-frontend
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID_FRONTEND }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
+          set -euo pipefail
           echo "Triggering frontend deploy for service $SERVICE_ID"
-          curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+          resp=$(curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{}' | jq || true
+            -d '{}')
+          echo "$resp" | jq .
+          deploy_id=$(echo "$resp" | jq -r .id)
+          if [ -z "$deploy_id" ] || [ "$deploy_id" = "null" ]; then
+            echo "::error::Failed to create frontend deploy: $resp"
+            exit 1
+          fi
+          echo "deploy_id=$deploy_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for frontend deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          deploy_id="${{ steps.trigger-frontend.outputs.deploy_id }}"
+          echo "Waiting for frontend deploy $deploy_id"
+          timeout=600
+          interval=6
+          elapsed=0
+          while true; do
+            resp=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/deploys/$deploy_id")
+            status=$(echo "$resp" | jq -r .status)
+            echo "Frontend deploy status: $status"
+            if [ "$status" = "active" ]; then
+              echo "Frontend deploy succeeded"
+              break
+            fi
+            if [ "$status" = "failed" ] || [ "$status" = "error" ]; then
+              echo "::error::Frontend deploy failed: $resp"
+              exit 1
+            fi
+            sleep $interval
+            elapsed=$((elapsed + interval))
+            if [ $elapsed -ge $timeout ]; then
+              echo "::error::Timed out waiting for frontend deploy (waited ${timeout}s)"
+              exit 1
+            fi
+          done

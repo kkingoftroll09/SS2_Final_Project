@@ -1,15 +1,21 @@
 from pydantic_settings import BaseSettings
+from pydantic import Field
+
 
 class Settings(BaseSettings):
-    db_host: str = "127.0.0.1"
-    db_port: int = 3306
-    db_user: str = "root"
-    db_password: str = "root"
-    db_name: str = "hotel_management"
-    db_allow_sqlite_fallback: bool = True
-    secret_key: str = "b2c8a9f6d4e51234abcd5678ef901234567890abcdef1234567890abcdef1234"
+    db_host: str = Field("127.0.0.1", env="DB_HOST")
+    db_port: int = Field(3306, env="DB_PORT")
+    db_user: str = Field("root", env="DB_USER")
+    db_password: str = Field("root", env="DB_PASSWORD")
+    db_name: str = Field("hotel_management", env="DB_NAME")
+    db_allow_sqlite_fallback: bool = Field(True, env="DB_ALLOW_SQLITE_FALLBACK")
+    secret_key: str = Field(
+        "b2c8a9f6d4e51234abcd5678ef901234567890abcdef1234567890abcdef1234",
+        env="SECRET_KEY",
+    )
 
     class Config:
         env_file = ".env"
+
 
 settings = Settings()

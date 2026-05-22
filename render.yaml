@@ -1,0 +1,34 @@
+services:
+  - name: ss2-backend
+    type: web
+    repo: https://github.com/kkingoftroll09/SS2_Final_Project
+    branch: main
+    rootDir: hotel_backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: "hotel_management"
+      - key: SECRET_KEY
+        sync: false
+
+  - name: ss2-frontend
+    type: web
+    runtime: static
+    repo: https://github.com/kkingoftroll09/SS2_Final_Project
+    branch: main
+    rootDir: "frontend booking hotel management"
+    buildCommand: echo "No build step"
+    staticPublishPath: .
+    envVars:
+      - key: API_BASE_URL
+        value: https://ss2-backend.onrender.com

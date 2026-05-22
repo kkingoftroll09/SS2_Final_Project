@@ -121,6 +121,8 @@ Use two services so the backend and frontend stay separate:
 - Add environment variables for your database: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 - Use an external MySQL host. Render does not provide a managed MySQL database.
 
+If Render says it cannot find `requirements.txt`, the service is almost always pointed at the repo root instead of `hotel_backend`. Fix it by setting the service Root Directory to `hotel_backend` and keeping the build command relative to that folder.
+
 ### Frontend Static Site
 
 - Root directory: `frontend booking hotel management`

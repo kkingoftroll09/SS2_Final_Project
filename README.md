@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Hotel Management System
 
 A full-stack hotel management application with guest booking, room management, payments, and employee administration. Built with FastAPI (backend) and vanilla JavaScript (frontend).
@@ -128,6 +127,51 @@ Use two services so the backend and frontend stay separate:
 - Build command: `echo "No build step"`
 - Publish directory: `.`
 - Set `window.API_BASE_URL` in the frontend to your Render backend URL before deploying the static site
+
+### Render Dashboard Steps (exact)
+
+1. Sign in to Render and go to the Dashboard.
+
+2. Create the Backend service:
+	- Click "New" → "Web Service".
+	- Connect your GitHub repo (`kkingoftroll09/SS2_Final_Project`) and select branch `main`.
+	- Root Directory: `hotel_backend`
+	- Environment: `Python 3`
+	- Build Command: `pip install -r requirements.txt`
+	- Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+	- Advanced: set `Health check path` to `/` or `/docs`.
+	- Click "Create Web Service".
+
+3. Set Backend environment variables (Service → Environment → Environment Variables):
+	- `DB_HOST` (secret) — your MySQL host
+	- `DB_PORT` = `3306` (or your DB port)
+	- `DB_USER` (secret)
+	- `DB_PASSWORD` (secret)
+	- `DB_NAME` = `hotel_management`
+	- `SECRET_KEY` (secret)
+
+4. Add a deploy hook to run migrations automatically (optional):
+	- In the backend service settings, under "Advanced" → "Pre-deploy commands", add:
+	  ```
+	  alembic upgrade head
+	  ```
+	- Alternatively, keep migrations manual and run `alembic upgrade head` from the Render shell after the service is running.
+
+5. Create the Frontend static site:
+	- Click "New" → "Static Site".
+	- Connect the same GitHub repo and branch `main`.
+	- Root Directory: `frontend booking hotel management`
+	- Build Command: `echo "No build step"`
+	- Publish Directory: `.`
+	- Optionally set an Environment Variable `API_BASE_URL` to your backend URL; otherwise edit `frontend booking hotel management/config.js` before deploying.
+	- Click "Create Static Site".
+
+6. After the backend deploys, copy the backend service URL (e.g. `https://<your-backend>.onrender.com`) and update the frontend `API_BASE_URL` (either via the static site's env vars or by editing `config.js` and redeploying the static site).
+
+7. Verify:
+	- Open the frontend static site URL and confirm the UI loads and API calls succeed.
+	- Check backend logs on Render for any migration or DB connection errors.
+
 
 ### What to commit to GitHub
 

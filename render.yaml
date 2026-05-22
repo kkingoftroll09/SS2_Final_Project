@@ -5,9 +5,9 @@ services:
     branch: main
     rootDir: hotel_backend
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    preDeployCommand: alembic upgrade head
+    buildCommand: cd hotel_backend && pip install -r requirements.txt
+    startCommand: cd hotel_backend && gunicorn -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:$PORT --workers 4
+    preDeployCommand: cd hotel_backend && alembic upgrade head
     envVars:
       - key: DB_HOST
         sync: false

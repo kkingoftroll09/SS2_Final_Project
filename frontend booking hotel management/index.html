@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurum Hotel — Management Suite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Auth Screen ── -->
+<div id="auth-container"></div>
+
+<!-- ── App Shell ── -->
+<div id="app-shell" class="app" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">Aurum</div>
+      <div class="logo-sub">Hotel Suite</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
+          <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
+        </svg>
+        Dashboard
+      </div>
+
+      <div class="nav-section-label">Operations</div>
+      <div class="nav-item" data-page="bookings">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="2" width="14" height="13" rx="1.5"/>
+          <path d="M5 1v2M11 1v2M1 6h14"/>
+        </svg>
+        Bookings
+      </div>
+      <div class="nav-item" data-page="rooms">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="4" width="14" height="10" rx="1.5"/>
+          <path d="M4 4V2.5a1 1 0 011-1h6a1 1 0 011 1V4"/>
+          <path d="M1 10h14"/>
+        </svg>
+        Rooms
+      </div>
+      <div class="nav-item" data-page="guests">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6"/>
+        </svg>
+        Guests
+      </div>
+      <div class="nav-item" data-page="services">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v3l2 2"/>
+        </svg>
+        Services
+      </div>
+
+      <div class="nav-section-label">Finance</div>
+      <div class="nav-item" data-page="payments">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="4" width="14" height="9" rx="1.5"/>
+          <path d="M1 7h14M5 11h2"/>
+        </svg>
+        Payments
+      </div>
+
+      <div class="nav-section-label">Admin</div>
+      <div class="nav-item" data-page="employees">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="5" cy="5" r="2.5"/>
+          <path d="M1 14c0-2.209 1.791-4 4-4s4 1.791 4 4"/>
+          <path d="M11 7l1.5 1.5L15 6"/>
+        </svg>
+        Employees
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div>
+          <div class="user-name" id="user-name">Loading…</div>
+          <div class="user-role" id="user-role"></div>
+        </div>
+      </div>
+      <button class="btn-logout" id="btn-logout">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <header class="topbar">
+      <span class="page-title" id="topbar-page-title">Dashboard</span>
+      <div class="topbar-actions">
+        <span style="font-size:0.75rem;color:var(--text-dim)">Hotel Management v1.0</span>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="page active" id="page-dashboard"></div>
+      <div class="page" id="page-guests"></div>
+      <div class="page" id="page-rooms"></div>
+      <div class="page" id="page-bookings"></div>
+      <div class="page" id="page-services"></div>
+      <div class="page" id="page-employees"></div>
+      <div class="page" id="page-payments"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Scripts (order matters) -->
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="ui.js"></script>
+<script src="auth.js"></script>
+<script src="pages.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

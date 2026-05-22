@@ -1,0 +1,47 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from routers import (
+    room_types,
+    rooms,
+    guests,
+    bookings,
+    hotel_services,
+    booking_details,
+    payments,
+    employees,
+    auth,
+    housekeeping
+)
+
+app = FastAPI(
+    title="Hotel Management API",
+    description="Hệ thống quản lý khách sạn - Quản lý phòng, khách hàng, đặt phòng, dịch vụ và thanh toán",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(room_types.router,      tags=["Phòng - Room Types"])
+app.include_router(rooms.router,           tags=["Phòng - Rooms"])
+app.include_router(guests.router,          tags=["Khách hàng - Guests"])
+app.include_router(bookings.router,        tags=["Đặt phòng - Bookings"])
+app.include_router(hotel_services.router,        tags=["Dịch vụ - Services"])
+app.include_router(booking_details.router, tags=["Dịch vụ theo phòng"])
+app.include_router(payments.router,        tags=["Thanh toán - Payments"])
+app.include_router(employees.router,       tags=["Nhân viên - Employees"])
+app.include_router(auth.router,            tags=["Xác thực - Auth"])
+app.include_router(housekeeping.router,    tags=["Buồng phòng - Housekeeping"])
+
+@app.get("/", tags=["Default"])
+async def root():
+    return {
+        "message": "Hotel Management API is running successfully! 🏨",
+        "docs": "/docs"
+    }

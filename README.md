@@ -130,7 +130,7 @@ If Render says it cannot find `requirements.txt`, the service is almost always p
 - Publish directory: `.`
 - Set `window.API_BASE_URL` in the frontend to your Render backend URL before deploying the static site
 - The frontend does **not** use database credentials. Those stay in the backend service only.
-- For this project, the frontend automatically uses `http://127.0.0.1:8000` on localhost and `https://ss2-backend.onrender.com` on Render.
+- For this project, the frontend automatically uses `http://127.0.0.1:8000` on localhost and `https://ss2-final-project-frontend.onrender.com` on Render.
 
 ### Render Dashboard Steps (exact)
 

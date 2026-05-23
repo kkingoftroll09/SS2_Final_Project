@@ -32,4 +32,4 @@ services:
     staticPublishPath: .
     envVars:
       - key: API_BASE_URL
-        value: https://ss2-backend.onrender.com
+        value: https://ss2-final-project-frontend.onrender.com

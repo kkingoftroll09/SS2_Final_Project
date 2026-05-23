@@ -115,6 +115,12 @@
 </div>
 
 <!-- Scripts (order matters) -->
+<!-- Optional override for Render static sites: set window.API_BASE_URL before config.js loads -->
+<script>
+  // If you want to debug Render connectivity, set to your backend URL here:
+  // window.API_BASE_URL = 'https://ss2-backend.onrender.com';
+  // window.API_BASE_URL = 'https://YOUR-BACKEND-URL.onrender.com';
+</script>
 <script src="config.js"></script>
 <script src="api.js"></script>
 <script src="ui.js"></script>

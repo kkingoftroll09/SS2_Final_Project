@@ -17,8 +17,9 @@ const API = (() => {
     try {
       res = await fetch(`${BASE}${path}`, opts);
     } catch (err) {
-      console.error('Network request failed', { method, url: `${BASE}${path}`, opts, err });
-      throw new Error(`Network request failed: ${err && err.message ? err.message : err}`);
+      const url = `${BASE}${path}`;
+      console.error('Network request failed', { method, url, opts, err, BASE });
+      throw new Error(`Network request failed: ${err && err.message ? err.message : err}. URL=${url}. BASE=${BASE}`);
     }
 
     if (res.status === 401) {
@@ -44,8 +45,9 @@ const API = (() => {
     try {
       res = await fetch(`${BASE}${path}`, { method, headers, body });
     } catch (err) {
-      console.error('Network request (form) failed', { method, url: `${BASE}${path}`, headers, body, err });
-      throw new Error(`Network request failed: ${err && err.message ? err.message : err}`);
+      const url = `${BASE}${path}`;
+      console.error('Network request (form) failed', { method, url, headers, body, err });
+      throw new Error(`Network request failed: ${err && err.message ? err.message : err}. URL=${url}`);
     }
 
     if (res.status === 401) {

@@ -5,9 +5,9 @@ services:
     branch: main
     rootDir: hotel_backend
     runtime: python
-    buildCommand: cd hotel_backend && pip install -r requirements.txt
-    startCommand: cd hotel_backend && gunicorn -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:$PORT --workers 4
-    preDeployCommand: cd hotel_backend && alembic upgrade head
+    buildCommand: python -c "import os, subprocess, sys; req = 'hotel_backend/requirements.txt' if os.path.exists('hotel_backend/requirements.txt') else 'requirements.txt'; subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', req])"
+    startCommand: python -c "import os, runpy; target = 'hotel_backend/render_start.py' if os.path.exists('hotel_backend/render_start.py') else 'render_start.py'; runpy.run_path(target, run_name='__main__')"
+    preDeployCommand: python -c "import os, runpy; target = 'hotel_backend/render_migrate.py' if os.path.exists('hotel_backend/render_migrate.py') else 'render_migrate.py'; runpy.run_path(target, run_name='__main__')"
     envVars:
       - key: DB_HOST
         sync: false

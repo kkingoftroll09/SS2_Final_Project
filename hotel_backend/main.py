@@ -59,3 +59,13 @@ async def root():
         "message": "Hotel Management API is running successfully! 🏨",
         "docs": "/docs"
     }
+
+
+@app.head("/")
+async def root_head():
+    return {}
+
+
+@app.get("/health", tags=["Default"])
+async def health_check():
+    return {"status": "ok"}

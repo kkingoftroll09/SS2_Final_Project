@@ -10,7 +10,9 @@ services:
     preDeployCommand: python -c "import os, runpy; target = 'hotel_backend/render_migrate.py' if os.path.exists('hotel_backend/render_migrate.py') else 'render_migrate.py'; runpy.run_path(target, run_name='__main__')"
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: ss2-db
+          property: connectionString
       - key: SECRET_KEY
         sync: false
       - key: FRONTEND_CORS_ORIGINS
@@ -26,4 +28,9 @@ services:
     staticPublishPath: .
     envVars:
       - key: API_BASE_URL
-        value: https://ss2-final-project-frontend.onrender.com
+        value: https://ss2-backend.onrender.com
+
+databases:
+  - name: ss2-db
+    databaseName: ss2_project
+    user: ss2_user

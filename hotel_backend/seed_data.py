@@ -40,9 +40,9 @@ def ensure_room_columns_and_backfill(db):
     # Backfill floor from room number first digit(s), e.g. 301 -> 3.
     db.execute(text("""
         UPDATE room
-        SET floor = CAST(SUBSTRING(room_number, 1, 1) AS UNSIGNED)
+                SET floor = CAST(SUBSTRING(room_number FROM 1 FOR 1) AS INTEGER)
         WHERE floor IS NULL
-          AND room_number REGEXP '^[0-9]'
+                    AND room_number ~ '^[0-9]'
     """))
 
     # Fill sensible occupancy defaults by type name.

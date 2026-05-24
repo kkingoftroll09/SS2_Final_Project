@@ -1,8 +1,8 @@
-<# PowerShell helper to run Alembic migrations from the backend folder #>
+<# PowerShell helper to create the PostgreSQL schema from ORM models #>
 Set-StrictMode -Version Latest
 Push-Location $PSScriptRoot
 try {
-    alembic upgrade head
+    python render_migrate.py
 } finally {
     Pop-Location
 }

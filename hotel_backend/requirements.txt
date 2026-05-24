@@ -1,7 +1,5 @@
 fastapi
 uvicorn[standard]
-mysql-connector-python
-pymysql
 sqlalchemy
 pydantic[email]
 pydantic-settings
@@ -10,3 +8,4 @@ passlib[bcrypt]
 python-multipart
 python-dotenv
 gunicorn
+psycopg2-binary

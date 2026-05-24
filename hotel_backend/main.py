@@ -24,8 +24,7 @@ app = FastAPI(
 allowed_origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
-    "https://ss2-final-project-frontend-zfrp.onrender.com",
-    "https://ss2-final-project-frontend.onrender.com",
+    "https://ss2-final-project.onrender.com",
 ]
 
 extra_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")

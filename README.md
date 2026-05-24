@@ -149,6 +149,20 @@ If you already have data in MySQL, copy it into PostgreSQL with the migration ut
 
 The utility copies the common hotel tables and resets primary-key sequences so new rows continue from the imported data.
 
+If you want a PostgreSQL SQL file instead of a live copy, use:
+
+1. Install a MySQL driver in your local environment if needed, for example `pip install pymysql`.
+2. Run `python hotel_backend/generate_postgres_seed_sql.py --source-url <mysql-url> --output hotel_backend/postgres_data_dump.sql --truncate`.
+3. Load the file into PostgreSQL with `psql -d <postgres-db> -f hotel_backend/postgres_data_dump.sql`.
+
+The generated SQL file contains `INSERT` statements for every project table in foreign-key-safe order.
+
+If you want a fresh demo dataset instead of exporting from MySQL, import [hotel_backend/postgres_brand_new_data.sql](hotel_backend/postgres_brand_new_data.sql) with:
+
+```powershell
+psql -d <postgres-db> -f hotel_backend/postgres_brand_new_data.sql
+```
+
 ### Render Dashboard Steps (exact)
 
 1. Sign in to Render and go to the Dashboard.

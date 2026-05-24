@@ -4,7 +4,7 @@
 
   const defaultApiBase = isLocalDev
     ? 'http://127.0.0.1:8000'
-    : 'https://ss2-final-project-backend.onrender.com';
+    : 'https://ss2-backend.onrender.com';
 
   window.API_BASE_URL = defaultApiBase;
 

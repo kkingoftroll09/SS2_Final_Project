@@ -28,7 +28,7 @@ services:
     staticPublishPath: .
     envVars:
       - key: API_BASE_URL
-        value: https://ss2-final-project-backend.onrender.com
+        value: https://ss2-backend.onrender.com
 
 databases:
   - name: ss2-db

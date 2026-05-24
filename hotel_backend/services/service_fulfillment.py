@@ -8,14 +8,14 @@ def add_service(booking_detail_id: int, service_id: int, employee_id: int, quant
     if quantity is None or int(quantity) <= 0:
         return None
 
-    svc = db.fetch_one("SELECT price FROM service WHERE id = %s", (service_id,))
+    svc = db.fetch_one("SELECT price FROM service WHERE id = :service_id", {"service_id": service_id})
     if not svc:
         return None
-    emp = db.fetch_one("SELECT id FROM employee WHERE id = %s", (employee_id,))
+    emp = db.fetch_one("SELECT id FROM employee WHERE id = :employee_id", {"employee_id": employee_id})
     if not emp:
         return None
 
-    bd = db.fetch_one("SELECT id FROM booking_detail WHERE id = %s", (booking_detail_id,))
+    bd = db.fetch_one("SELECT id FROM booking_detail WHERE id = :booking_detail_id", {"booking_detail_id": booking_detail_id})
     if not bd:
         return None
     total = svc['price'] * quantity
@@ -23,8 +23,8 @@ def add_service(booking_detail_id: int, service_id: int, employee_id: int, quant
     return db.execute_query("""
         INSERT INTO booking_service 
         (booking_detail_id, service_id, employee_id, quantity, total_price)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (booking_detail_id, service_id, employee_id, quantity, total))
+        VALUES (:booking_detail_id, :service_id, :employee_id, :quantity, :total)
+    """, {"booking_detail_id": booking_detail_id, "service_id": service_id, "employee_id": employee_id, "quantity": quantity, "total": total})
 
 def get_services_for_room(booking_detail_id: int):
     return db.fetch_all("""
@@ -32,5 +32,5 @@ def get_services_for_room(booking_detail_id: int):
         FROM booking_service bs
         JOIN service s ON bs.service_id = s.id
         JOIN employee e ON bs.employee_id = e.id
-        WHERE bs.booking_detail_id = %s
-    """, (booking_detail_id,))
+        WHERE bs.booking_detail_id = :booking_detail_id
+    """, {"booking_detail_id": booking_detail_id})

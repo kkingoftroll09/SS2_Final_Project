@@ -3,6 +3,7 @@ from pydantic import Field
 
 
 class Settings(BaseSettings):
+    database_url: str | None = Field(None, env="DATABASE_URL")
     db_host: str = Field("127.0.0.1", env="DB_HOST")
     db_port: int = Field(3306, env="DB_PORT")
     db_user: str = Field("root", env="DB_USER")

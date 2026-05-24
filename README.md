@@ -40,14 +40,14 @@ SS2_Project_New/
 ├── debug_payment.py           # Payment testing script
 ├── e2e_test.py               # Basic end-to-end test
 ├── e2e_more.py               # Extended E2E scenarios
-└── fix_db_schema.py          # Database schema migration utility
+└── hotel_backend/migrate_mysql_to_postgresql.py  # MySQL to PostgreSQL data migration utility
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Python 3.8+
-- MySQL 5.7+ (running on localhost:3306)
+- PostgreSQL 14+ (or any SQLAlchemy-compatible PostgreSQL server)
 - Node.js (optional, for serving frontend)
 
 ### 1. Setup Backend
@@ -61,25 +61,25 @@ pip install -r requirements.txt
 
 ### 2. Configure Database
 
-Create MySQL database:
-```sql
-CREATE DATABASE hotel_management;
+Create a PostgreSQL database and set `DATABASE_URL` in `.env`:
+```dotenv
+DATABASE_URL=postgresql+psycopg2://<user>:<password>@<host>:5432/hotel_management
+SECRET_KEY=your_secret_key
 ```
 
-Update `config.py`:
-```python
-DB_HOST = "127.0.0.1"
-DB_USER = "root"
-DB_PASSWORD = "root"
-DB_NAME = "hotel_management"
+If you prefer individual fields locally, you can still set:
+```dotenv
+DB_HOST=<host>
+DB_PORT=5432
+DB_USER=<user>
+DB_PASSWORD=<password>
+DB_NAME=hotel_management
 ```
 
 ### 3. Run Migrations
 
 ```bash
-cd alembic
-alembic upgrade head
-cd ..
+python hotel_backend/render_migrate.py
 ```
 
 ### 4. Start Backend (Port 8000)
@@ -118,8 +118,8 @@ Use two services so the backend and frontend stay separate:
 - Root directory: `hotel_backend`
 - Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- Add environment variables for your database: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
-- Use an external MySQL host. Render does not provide a managed MySQL database.
+- Add environment variables for your database: `DATABASE_URL` and `SECRET_KEY`
+- Use a Render PostgreSQL database and copy its connection string into `DATABASE_URL`.
 
 If Render says it cannot find `requirements.txt`, the service is almost always pointed at the repo root instead of `hotel_backend`. Fix it by setting the service Root Directory to `hotel_backend` and keeping the build command relative to that folder.
 
@@ -128,14 +128,30 @@ If Render says it cannot find `requirements.txt`, the service is almost always p
 - Root directory: `frontend booking hotel management`
 - Build command: `echo "No build step"`
 - Publish directory: `.`
-- Set `window.API_BASE_URL` in the frontend to your Render backend URL before deploying the static site
+- Set `API_BASE_URL` to your backend URL.
 - The frontend does **not** use database credentials. Those stay in the backend service only.
-- For this project, the frontend automatically uses `http://127.0.0.1:8000` on localhost and `https://ss2-final-project-frontend.onrender.com` on Render.
+
+### PostgreSQL on Render
+
+1. Create a new Render **PostgreSQL** database.
+2. Copy its `DATABASE_URL` into the backend service environment variables.
+3. Redeploy the backend.
+4. The backend will create the schema automatically during the pre-deploy step (`python render_migrate.py`).
+
+### Moving Existing MySQL Data
+
+If you already have data in MySQL, copy it into PostgreSQL with the migration utility:
+
+1. Set `SOURCE_DATABASE_URL` to the old MySQL connection string.
+2. Set `DATABASE_URL` to the PostgreSQL connection string.
+3. Run `python hotel_backend/migrate_mysql_to_postgresql.py --replace` from the repository root.
+4. Redeploy the backend after the copy finishes.
+
+The utility copies the common hotel tables and resets primary-key sequences so new rows continue from the imported data.
 
 ### Render Dashboard Steps (exact)
 
 1. Sign in to Render and go to the Dashboard.
-
 2. Create the Backend service:
 	- Click "New" → "Web Service".
 	- Connect your GitHub repo (`kkingoftroll09/SS2_Final_Project`) and select branch `main`.
@@ -143,38 +159,23 @@ If Render says it cannot find `requirements.txt`, the service is almost always p
 	- Environment: `Python 3`
 	- Build Command: `pip install -r requirements.txt`
 	- Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-	- Advanced: set `Health check path` to `/` or `/docs`.
+	- Pre-deploy Command: `python render_migrate.py`
 	- Click "Create Web Service".
-
 3. Set Backend environment variables (Service → Environment → Environment Variables):
-	- `DB_HOST` (secret) — your MySQL host
-	- `DB_PORT` = `3306` (or your DB port)
-	- `DB_USER` (secret)
-	- `DB_PASSWORD` (secret)
-	- `DB_NAME` = `hotel_management`
+	- `DATABASE_URL` (secret) — copy the PostgreSQL connection string from your Render PostgreSQL service
 	- `SECRET_KEY` (secret)
-
-4. Add a deploy hook to run migrations automatically (optional):
-	- In the backend service settings, under "Advanced" → "Pre-deploy commands", add:
-	  ```
-	  alembic upgrade head
-	  ```
-	- Alternatively, keep migrations manual and run `alembic upgrade head` from the Render shell after the service is running.
-
-5. Create the Frontend static site:
+	- Optional if you want local-style fallback: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+4. Create the Frontend static site:
 	- Click "New" → "Static Site".
 	- Connect the same GitHub repo and branch `main`.
 	- Root Directory: `frontend booking hotel management`
 	- Build Command: `echo "No build step"`
 	- Publish Directory: `.`
-	- Optionally set an Environment Variable `API_BASE_URL` to your backend URL; otherwise edit `frontend booking hotel management/config.js` before deploying.
+	- Set `API_BASE_URL` to the backend URL.
 	- Click "Create Static Site".
-
-6. After the backend deploys, copy the backend service URL (e.g. `https://<your-backend>.onrender.com`) and update the frontend `API_BASE_URL` (either via the static site's env vars or by editing `config.js` and redeploying the static site).
-
-7. Verify:
+5. Verify:
 	- Open the frontend static site URL and confirm the UI loads and API calls succeed.
-	- Check backend logs on Render for any migration or DB connection errors.
+	- Check backend logs on Render for any migration or database connection errors.
 
 
 ### What to commit to GitHub
@@ -306,7 +307,7 @@ python debug_payment.py
 ### Payment 500 Error (FIXED ✓)
 - **Issue**: Payment endpoint returned 500 with "Data truncated for column 'payment_method'"
 - **Cause**: Database column was ENUM with limited values
-- **Fix Applied**: Modified `payment_method` to VARCHAR(100) via `fix_db_schema.py`
+- **Fix Applied**: Modified `payment_method` to VARCHAR(100) in the PostgreSQL schema path
 - **Status**: All payment tests now pass (201 response, 'card' method accepted)
 
 ### Service Assignment (PARTIAL)
@@ -349,8 +350,7 @@ The frontend `api.js` normalizes field names for consistency:
 - FastAPI 0.136.1
 - Uvicorn 0.47.0
 - SQLAlchemy 2.0.49
-- PyMySQL 1.1.3
-- Alembic (migrations)
+- psycopg2-binary (PostgreSQL driver)
 - Passlib (password hashing)
 - python-jose (JWT)
 
@@ -361,7 +361,7 @@ The frontend `api.js` normalizes field names for consistency:
 - Fetch API
 
 **Database:**
-- MySQL 5.7+
+- PostgreSQL 14+
 
 ## 🚢 Deployment Notes
 
@@ -370,11 +370,12 @@ The frontend `api.js` normalizes field names for consistency:
 - JWT tokens should be stored in browser localStorage
 - Database backups recommended before production use
 - API rate limiting not currently implemented
+- For Render, prefer PostgreSQL and set `DATABASE_URL` from the Render database service.
 
 ## 📞 Support
 
 For issues or questions:
 1. Check test outputs (`e2e_test.py`, `e2e_more.py`)
-2. Review database logs in MySQL
+2. Review database logs in PostgreSQL
 3. Check uvicorn terminal for backend errors
 4. Browser console for frontend errors

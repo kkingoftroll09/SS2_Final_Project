@@ -16,7 +16,7 @@ services:
       - key: SECRET_KEY
         sync: false
       - key: FRONTEND_CORS_ORIGINS
-        value: https://ss2-final-project-frontend-zfrp.onrender.com
+        value: https://ss2-final-project.onrender.com
 
   - name: ss2-frontend
     type: web
@@ -28,7 +28,7 @@ services:
     staticPublishPath: .
     envVars:
       - key: API_BASE_URL
-        value: https://ss2-backend.onrender.com
+        value: https://ss2-final-project-backend.onrender.com
 
 databases:
   - name: ss2-db

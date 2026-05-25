@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "name": "ss2-frontend",
+  "builds": [
+    { "src": "frontend booking hotel management/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/frontend booking hotel management/$1" }
+  ]
+}

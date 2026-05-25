@@ -81,15 +81,21 @@ def seed_database():
         print("Seeding Employees...")
         for emp_data in employees_data:
             existing = db.query(Employee).filter(Employee.username == emp_data["username"]).first()
+            password_hash = get_password_hash(emp_data["password"])
             if not existing:
                 emp = Employee(
                     username=emp_data["username"],
-                    hashed_password=get_password_hash(emp_data["password"]),
+                    hashed_password=password_hash,
                     full_name=emp_data["full_name"],
                     position=emp_data["position"],
                     role=emp_data["role"]
                 )
                 db.add(emp)
+            else:
+                existing.hashed_password = password_hash
+                existing.full_name = emp_data["full_name"]
+                existing.position = emp_data["position"]
+                existing.role = emp_data["role"]
         db.commit()
 
         # ==============================================================

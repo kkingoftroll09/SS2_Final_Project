@@ -23,9 +23,16 @@ const API = (() => {
     }
 
     if (res.status === 401) {
-      clearToken();
-      window.App && App.showAuth();
-      throw { message: 'Phiên làm việc hết hạn' };
+      let data;
+      try { data = await res.json(); } catch { data = await res.text(); }
+
+      if (path !== '/auth/login') {
+        clearToken();
+        window.App && App.showAuth();
+        throw new Error(data?.detail || data?.message || 'Phiên làm việc hết hạn');
+      }
+
+      throw new Error(data?.detail || data?.message || data || 'Incorrect username or password');
     }
 
     let data;
@@ -51,9 +58,16 @@ const API = (() => {
     }
 
     if (res.status === 401) {
-      clearToken();
-      window.App && App.showAuth();
-      throw { message: 'Phiên làm việc hết hạn' };
+      let data;
+      try { data = await res.json(); } catch { data = await res.text(); }
+
+      if (path !== '/auth/login') {
+        clearToken();
+        window.App && App.showAuth();
+        throw new Error(data?.detail || data?.message || 'Phiên làm việc hết hạn');
+      }
+
+      throw new Error(data?.detail || data?.message || data || 'Incorrect username or password');
     }
 
     let data;

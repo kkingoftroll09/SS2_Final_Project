@@ -26,6 +26,7 @@ allowed_origins = [
     "http://localhost:5500",
     "https://ss2-final-project.onrender.com",
     "https://ss2-frontend.onrender.com",
+    "https://ss2-backend.onrender.com",
 ]
 
 extra_origins = os.getenv("FRONTEND_CORS_ORIGINS", "")

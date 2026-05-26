@@ -1,6 +1,16 @@
 from sqlalchemy import text, inspect
 from db import SessionLocal, engine, Base
-from models import Employee, RoomType, Room, Guest
+from models import (
+    Employee,
+    RoomType,
+    Room,
+    Guest,
+    Booking,
+    BookingDetail,
+    Payment,
+    Service,
+    HousekeepingTask,
+)
 from services.auth_service import get_password_hash
 
 # Create tables if they don't exist (needed when falling back to SQLite)
@@ -134,6 +144,97 @@ def seed_database():
             """))
             db.commit()
 
+        # ==============================================================
+        # 4. Seed Sample Guests, Booking, Payment, BookingService, Housekeeping
+        # ==============================================================
+        print("Seeding sample guests and a booking...")
+        sample_guests = [
+            {"full_name": "John Doe", "email": "john.doe@example.com", "phone": "555-0101", "address": "123 Main St"},
+            {"full_name": "Jane Smith", "email": "jane.smith@example.com", "phone": "555-0202", "address": "456 Oak Ave"},
+        ]
+        for g in sample_guests:
+            existing_g = db.query(Guest).filter(Guest.email == g["email"]).first()
+            if not existing_g:
+                db.add(Guest(**g))
+        db.commit()
+
+        # Choose an available room
+        room = db.query(Room).filter(Room.status == 'available').first()
+        if not room:
+            room = db.query(Room).first()
+
+        if room:
+            guest = db.query(Guest).filter(Guest.email == 'john.doe@example.com').first()
+            if guest:
+                from datetime import date, timedelta
+
+                check_in = date.today() + timedelta(days=1)
+                check_out = check_in + timedelta(days=2)
+
+                # avoid duplicate booking for same guest/dates
+                exists_booking = db.query(Booking).filter(
+                    Booking.guest_id == guest.id,
+                    Booking.check_in_date == check_in,
+                    Booking.check_out_date == check_out,
+                ).first()
+
+                if not exists_booking:
+                    booking = Booking(
+                        guest_id=guest.id,
+                        check_in_date=check_in,
+                        check_out_date=check_out,
+                        status='confirmed',
+                        number_of_guests=2,
+                    )
+                    db.add(booking)
+                    db.commit()
+
+                    # price per night from room_type if available
+                    price = None
+                    if room and getattr(room, 'room_type', None) and getattr(room.room_type, 'base_price', None) is not None:
+                        price = float(room.room_type.base_price)
+                    else:
+                        price = 75.0
+
+                    detail = BookingDetail(booking_id=booking.id, room_id=room.id, price_per_night=price)
+                    db.add(detail)
+                    db.commit()
+
+                    nights = (check_out - check_in).days
+                    total = price * nights
+                    payment_amount = round(total * 0.5, 2)
+                    payment = Payment(booking_id=booking.id, amount=payment_amount, payment_method='card')
+                    db.add(payment)
+                    db.commit()
+
+                    # attach a spa service if available
+                    svc = db.query(Service).filter(Service.name.ilike('%spa%')).first()
+                    if svc:
+                        db.execute(text("""
+                            INSERT INTO booking_service (booking_detail_id, service_id, employee_id, quantity, total_price)
+                            VALUES (:bdid, :sid, :eid, :qty, :total)
+                        """), {
+                            'bdid': detail.id,
+                            'sid': svc.id,
+                            'eid': None,
+                            'qty': 1,
+                            'total': float(svc.price)
+                        })
+                        db.commit()
+
+        # Housekeeping task sample
+        cleaner = db.query(Employee).filter(Employee.username == 'cleaner').first()
+        target_room = db.query(Room).filter(Room.status == 'needs_cleaning').first()
+        if target_room and cleaner:
+            existing_task = db.query(HousekeepingTask).filter(
+                HousekeepingTask.room_id == target_room.id,
+                HousekeepingTask.employee_id == cleaner.id,
+            ).first()
+            if not existing_task:
+                task = HousekeepingTask(room_id=target_room.id, employee_id=cleaner.id, status='TODO', notes='Sample seed task')
+                db.add(task)
+                db.commit()
+
         print("\nDatabase seeded successfully!")
         print("=" * 40)
         print("Test Accounts (Password for all is 'password123'):")
@@ -147,5 +248,44 @@ def seed_database():
     finally:
         db.close()
 
+def clear_seeded_data(db):
+    """Delete seeded data in a safe order to avoid FK constraint errors."""
+    print("Clearing seeded data...")
+    try:
+        # booking_service -> booking_detail -> payment -> booking
+        db.execute(text("DELETE FROM booking_service"))
+        db.execute(text("DELETE FROM booking_detail"))
+        db.execute(text("DELETE FROM payment"))
+        db.execute(text("DELETE FROM booking"))
+
+        # housekeeping tasks (may reference room/employee)
+        db.execute(text("DELETE FROM housekeeping_task"))
+
+        # rooms, room types, services, employees, guests
+        db.execute(text("DELETE FROM room"))
+        db.execute(text("DELETE FROM room_type"))
+        db.execute(text("DELETE FROM service"))
+        db.execute(text("DELETE FROM employee"))
+        db.execute(text("DELETE FROM guest"))
+
+        db.commit()
+        print("Cleared seeded data.")
+    except Exception as e:
+        print("Error while clearing seeded data:", e)
+        db.rollback()
+
+
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Seed the database with sample data')
+    parser.add_argument('--reset', action='store_true', help='Clear seeded tables before seeding')
+    args = parser.parse_args()
+
+    if args.reset:
+        db = SessionLocal()
+        try:
+            clear_seeded_data(db)
+        finally:
+            db.close()
+
     seed_database()

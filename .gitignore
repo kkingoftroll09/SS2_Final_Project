@@ -14,5 +14,6 @@ build/
 node_modules/
 .env
 .env.*
+!.env.example
 /requirements.txt
 hotel_backend/hotel_local.db
